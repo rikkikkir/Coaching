@@ -1,0 +1,458 @@
+/* Rikki: Boomer Tutor and AI Consultant. Written by Claude for Rikki, 2026-11-16; reworked after the review of the same day.
+   The DM Sans file holds weights 400 to 600; the Source Serif 4 file holds 400 to 700. No rule asks for more. */
+@font-face{font-family:"DM Sans";src:url("fonts/dm-sans.woff") format("woff");font-weight:400 600;font-display:swap}
+@font-face{font-family:"Source Serif 4";src:url("fonts/source-serif-4.woff") format("woff");font-weight:400 700;font-display:swap}
+
+*{box-sizing:border-box}
+/* Percent, not pixels: the reader's own browser text setting still counts. 118.75% of 16 is 19. */
+html{font-size:118.75%;-webkit-text-size-adjust:100%}
+html[data-size="2"]{font-size:137.5%}
+html[data-size="3"]{font-size:156.25%}
+
+/* Night look (opens first) */
+html[data-look="night"]{
+  --bg:#060914;--ink:#F4F6FF;--muted:#BAC1DB;--card:rgba(255,255,255,.06);--card2:rgba(255,255,255,.10);
+  --solid:#0E1328;--line:rgba(255,255,255,.18);--edge:#8A90AB;--acc1:#36E2C6;--acc2:#8C6BFF;--acc3:#FF7AB8;--btn-ink:#06101A;
+  --link:#7FEBDA;--chip:rgba(140,107,255,.20);--chip-ink:#D9CFFF;
+  --wash:radial-gradient(60% 55% at 82% 0%,rgba(140,107,255,.38),transparent 62%),
+         radial-gradient(48% 42% at 6% 8%,rgba(54,226,198,.22),transparent 60%),
+         radial-gradient(40% 40% at 60% 100%,rgba(255,122,184,.12),transparent 60%);
+  --shadow:0 20px 60px rgba(0,0,0,.45);--nav:rgba(8,12,28,.78);--focus:#FFD166;
+  --warn-bg:rgba(255,209,102,.10);--warn-line:#FFD166;--warn-ink:#FFE3A1;
+  --alert-bg:rgba(255,122,184,.12);--alert-line:#FF7AB8;
+  color-scheme:dark;
+}
+/* Daylight look */
+html[data-look="day"]{
+  --bg:#F5F6FB;--ink:#0C1126;--muted:#454C6B;--card:#FFFFFF;--card2:#FFFFFF;
+  --solid:#FFFFFF;--line:#D5DAEA;--edge:#6B7392;--acc1:#1F4DFF;--acc2:#7A3DFF;--acc3:#00857A;--btn-ink:#FFFFFF;
+  --link:#1F3FD6;--chip:#ECE8FF;--chip-ink:#4A22B8;
+  --wash:radial-gradient(60% 55% at 86% -6%,rgba(122,61,255,.20),transparent 62%),
+         radial-gradient(46% 42% at 4% 0%,rgba(31,77,255,.14),transparent 60%),
+         radial-gradient(40% 40% at 55% 100%,rgba(0,133,122,.10),transparent 60%);
+  --shadow:0 18px 50px rgba(28,39,90,.12);--nav:rgba(255,255,255,.86);--focus:#B4004E;
+  --warn-bg:#FFF6DA;--warn-line:#8F6A00;--warn-ink:#5C4300;
+  --alert-bg:#FFECF3;--alert-line:#B4004E;
+  color-scheme:light;
+}
+
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-synthesis:style;color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-wrap:break-word}
+/* The coloured glow sits on a layer of its own, pinned to the window. This works on iPhones and iPads too. */
+body::before{content:"";position:fixed;top:0;right:0;bottom:0;left:0;z-index:-1;background:var(--wash);pointer-events:none}
+main{flex:1 0 auto}
+img,svg{max-width:100%}
+a{color:var(--link);text-underline-offset:.18em;text-decoration-thickness:.08em}
+a:hover{text-decoration-thickness:.14em}
+:focus{outline:3px solid var(--focus);outline-offset:3px;border-radius:8px}
+:focus:not(:focus-visible){outline:none}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:8px}
+h1,h2,h3,h4{letter-spacing:-.02em;line-height:1.15;margin:0;font-weight:600;text-wrap:balance}
+b,strong{font-weight:600}
+p{margin:0 0 1rem}
+ul,ol{margin:0;padding:0}
+.wrap{width:100%;max-width:1180px;margin:0 auto;padding-left:1.4rem;padding-right:1.4rem}
+.icon{width:1.5rem;height:1.5rem;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.vh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip{position:absolute;left:-999px;top:0;background:var(--solid);color:var(--ink);padding:.8rem 1.2rem;border-radius:0 0 12px 0;z-index:20;font-weight:600}
+.skip:focus{left:0}
+/* Gradient words. The plain colour comes first, so the words survive wherever the gradient cannot be drawn. */
+.grad{color:var(--acc2)}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+  .grad{background:linear-gradient(95deg,var(--acc1),var(--acc2) 55%,var(--acc3));-webkit-background-clip:text;background-clip:text;color:transparent}
+}
+
+/* Draft line, shown while Rikki has not yet read and approved the words. Remove the line in build.py to drop the strip. */
+.draft-line{margin:0;text-align:center;font-weight:600;font-size:.95rem;padding:.45rem 1rem;background:var(--warn-bg);color:var(--warn-ink);border-bottom:1px solid var(--warn-line)}
+
+/* Top strip: text size and look. Always in view at the top of every page, on every device. */
+.util{border-bottom:1px solid var(--line);background:var(--nav)}
+.util .wrap{display:flex;align-items:center;justify-content:flex-end;gap:.5rem 1rem;flex-wrap:wrap;padding-top:.45rem;padding-bottom:.45rem}
+html:not(.js) .util{display:none}
+.size{display:flex;align-items:center;gap:.3rem}
+.size-cap{font-size:.9rem;font-weight:600;color:var(--muted);margin-right:.35rem}
+.size button,.look,.menu-btn{font:inherit;font-weight:600;color:var(--ink);background:var(--card);border:2px solid var(--edge);border-radius:12px;min-width:44px;min-height:44px;cursor:pointer}
+.size button:nth-of-type(1){font-size:.84rem}.size button:nth-of-type(2){font-size:1rem}.size button:nth-of-type(3){font-size:1.18rem}
+.size button[aria-pressed="true"]{border-color:var(--acc2);box-shadow:0 0 0 2px var(--acc2) inset;background:var(--chip);color:var(--chip-ink)}
+.look{padding:0 .9rem;font-size:.9rem}
+.look>span{display:none;align-items:center;gap:.4rem}
+.look .icon,.menu-btn .icon{width:1.15rem;height:1.15rem}
+html[data-look="night"] .look .to-day,html[data-look="day"] .look .to-night{display:inline-flex}
+
+/* Header with the name and the menu */
+header.nav{z-index:10;background:var(--nav);border-bottom:1px solid var(--line)}
+header.nav .wrap{display:flex;align-items:center;gap:.6rem 1rem;min-height:76px;flex-wrap:wrap;padding-top:.5rem;padding-bottom:.5rem}
+.mark{display:flex;align-items:center;gap:.7rem;font-weight:600;font-size:1.3rem;text-decoration:none;color:var(--ink);letter-spacing:-.01em;line-height:1.1}
+.mark i{width:36px;height:36px;border-radius:50%;background:var(--acc2);background:conic-gradient(from 210deg,var(--acc1),var(--acc2),var(--acc3),var(--acc1));display:block;position:relative;flex:none}
+.mark i::after{content:"";position:absolute;top:9px;right:9px;bottom:9px;left:9px;border-radius:50%;background:var(--bg)}
+.mark small{display:block;font-size:.84rem;font-weight:500;color:var(--muted);letter-spacing:0;margin-top:.15rem}
+.menu-btn{display:none;margin-left:auto;padding:0 .9rem;align-items:center;gap:.45rem;font-size:1rem}
+.panel{margin-left:auto;display:flex;gap:.15rem;flex-wrap:wrap}
+.panel a{text-decoration:none;color:var(--ink);font-weight:600;padding:.6rem .7rem;border-radius:999px;min-height:44px;display:inline-flex;align-items:center}
+.panel a:hover{background:var(--card2);box-shadow:inset 0 0 0 1px var(--line)}
+.panel a[aria-current="page"]{background:var(--chip);color:var(--chip-ink)}
+/* The header stays pinned only on wide, tall screens. On phones and tablets the header scrolls with the page,
+   so an open menu can always be scrolled to the end. */
+@media (min-width:941px) and (min-height:521px){
+  html{scroll-padding-top:6rem}
+  header.nav{position:-webkit-sticky;position:sticky;top:0;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:.55rem;min-height:58px;padding:.85rem 1.6rem;border-radius:999px;font-weight:600;font-size:1.05rem;text-decoration:none;color:var(--ink);transition:transform .15s ease,box-shadow .15s ease}
+.btn.primary{background:var(--acc2);background:linear-gradient(95deg,var(--acc1),var(--acc2));color:var(--btn-ink);box-shadow:0 10px 30px rgba(120,90,255,.32)}
+.btn.ghost{border:2px solid var(--edge);background:var(--card)}
+.cta{display:flex;gap:.9rem;flex-wrap:wrap}
+@media (hover:hover){.btn:hover{transform:translateY(-2px)}}
+
+/* Home hero */
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:2.5rem;align-items:center;padding-top:3.4rem;padding-bottom:3rem}
+.hero>*{min-width:0}
+.eyebrow{display:inline-flex;gap:.6rem;align-items:center;font-size:.9rem;font-weight:600;color:var(--muted);border:1px solid var(--line);background:var(--card);padding:.45rem .95rem;border-radius:999px}
+.eyebrow b{width:9px;height:9px;border-radius:50%;background:var(--acc3);flex:none}
+.hero h1{font-size:clamp(2.5rem,6vw,4.5rem);line-height:1.04;letter-spacing:-.03em;margin:1.3rem 0 1.1rem}
+.lede{font-size:1.2rem;color:var(--muted);max-width:36rem;margin:0 0 1.9rem}
+.proof{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.4rem;margin-top:2.3rem;list-style:none;max-width:38rem}
+.proof li{font-size:.9rem;color:var(--muted);line-height:1.35}
+.proof strong{display:block;font-size:1.6rem;color:var(--ink);letter-spacing:-.02em;line-height:1.1;margin-bottom:.2rem}
+.orbit{width:100%;max-width:520px;justify-self:center}
+.orbit .ring{fill:none;stroke:var(--edge);stroke-width:1.5;opacity:.7}
+.orbit .pill rect{fill:var(--solid);stroke:var(--edge);stroke-width:1.5}
+.orbit .pill text{fill:var(--ink);font:600 23px "DM Sans",system-ui,sans-serif;text-anchor:middle;dominant-baseline:central}
+.orbit .you text{fill:var(--btn-ink);font:600 26px "DM Sans",system-ui,sans-serif;text-anchor:middle;dominant-baseline:central}
+html[data-look="day"] .orbit .pill rect{filter:drop-shadow(0 6px 14px rgba(28,39,90,.12))}
+
+/* Inner page hero */
+.page-hero{padding-top:3.2rem;padding-bottom:1.6rem}
+.page-hero h1{font-size:clamp(2.1rem,4.8vw,3.4rem);letter-spacing:-.025em;margin:1.1rem 0 1rem;max-width:24ch}
+.page-hero .lede{max-width:42rem}
+
+/* Sections */
+.section{padding-top:3.2rem;padding-bottom:1.2rem}
+.head{max-width:44rem;margin-bottom:1.8rem}
+.kicker{font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:.84rem;color:var(--muted);display:block;margin-bottom:.55rem}
+.head h2{font-size:clamp(1.7rem,3.4vw,2.4rem)}
+.head p{color:var(--muted);font-size:1.08rem;margin:.8rem 0 0}
+
+.grid{display:grid;gap:1.2rem;list-style:none}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.card{position:relative;border:1px solid var(--line);background:var(--card);border-radius:24px;padding:1.5rem 1.5rem 1.4rem;box-shadow:var(--shadow)}
+.card h3{font-size:1.22rem;margin:0 0 .5rem}
+.card p{color:var(--muted);margin:0 0 .7rem}
+.card p:last-child{margin-bottom:0}
+.card ul{list-style:none;color:var(--muted)}
+.card ul li{position:relative;padding-left:1.25rem;margin:.35rem 0}
+.card ul li::before{content:"";position:absolute;left:.1rem;top:.62em;width:.5rem;height:.5rem;border-radius:50%;background:var(--acc2)}
+.chip{display:inline-flex;align-items:center;justify-content:center;width:3rem;height:3rem;border-radius:16px;background:var(--chip);color:var(--chip-ink);margin-bottom:1rem}
+a.card{display:flex;flex-direction:column;text-decoration:none;color:var(--ink);transition:transform .15s ease,border-color .15s ease}
+a.card .go{margin-top:auto;padding-top:.6rem}
+@media (hover:hover){a.card:hover{transform:translateY(-3px);border-color:var(--acc2)}}
+.go{font-weight:600;display:inline-flex;gap:.4rem;align-items:center;color:var(--ink)}
+.go .icon{width:1.1rem;height:1.1rem}
+:target{scroll-margin-top:100px}
+.card:target{border-color:var(--acc2);box-shadow:0 0 0 3px var(--acc2),var(--shadow)}
+
+/* Two doors on the home page */
+.doors{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;padding-top:1rem;padding-bottom:1rem}
+.door{border-radius:28px;padding:2rem 2rem 1.8rem;overflow:hidden}
+.door::before{content:"";position:absolute;left:0;top:0;right:0;height:5px;background:linear-gradient(90deg,var(--acc1),var(--acc2))}
+.door.two::before{background:linear-gradient(90deg,var(--acc2),var(--acc3))}
+.door h2{font-size:1.7rem;margin:.2rem 0 .6rem}
+.door p{color:var(--muted);margin:0 0 1.2rem}
+
+/* Numbered steps */
+.steps{counter-reset:s;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.2rem;list-style:none}
+.steps.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.steps li{counter-increment:s;border:1px solid var(--line);background:var(--card);border-radius:24px;padding:1.5rem;position:relative}
+.steps li::before{content:counter(s);display:flex;align-items:center;justify-content:center;width:2.6rem;height:2.6rem;border-radius:50%;font-weight:600;font-size:1.15rem;background:var(--acc2);background:linear-gradient(135deg,var(--acc1),var(--acc2));color:var(--btn-ink);margin-bottom:1rem}
+.steps h3{font-size:1.2rem;margin-bottom:.45rem}
+.steps p{color:var(--muted);margin:0}
+
+/* Split feature */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:2.2rem;align-items:center}
+.split>*{min-width:0}
+.split.top{align-items:start}
+.split h2{font-size:clamp(1.6rem,3.2vw,2.2rem);margin-bottom:.9rem}
+.split p{color:var(--muted)}
+/* The sample instruction sheet: real text, in the large type the lessons promise */
+.sheet{background:#FFFDF6;color:#1B1B1B;border-radius:14px;padding:1.6rem 1.7rem;box-shadow:var(--shadow);transform:rotate(-1.2deg);max-width:27rem;justify-self:center;border:1px solid #E5DFCB;margin:0}
+.sheet .sheet-title{font-size:1.35rem;font-weight:600;margin:0 0 .2rem;color:#1B1B1B;letter-spacing:-.01em;line-height:1.2}
+.sheet .sheet-note{color:#5A564B;display:block;margin:0 0 .9rem;font-size:.84rem}
+.sheet ol{list-style:none;counter-reset:n}
+.sheet ol li{counter-increment:n;display:flex;gap:.8rem;align-items:flex-start;font-size:1.25rem;margin:.75rem 0;line-height:1.3;font-weight:500}
+.sheet ol li::before{content:counter(n);flex:none;width:2rem;height:2rem;border-radius:50%;border:2px solid #1B1B1B;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:1rem}
+.sheet b{background:#D9F5EE;padding:0 .3rem;border-radius:5px;font-weight:600}
+.sheet b.red{background:#C62828;color:#FFFFFF}
+
+/* Check and cross lists */
+.ticks{list-style:none;display:grid;gap:.75rem}
+.ticks li{display:flex;gap:.75rem;align-items:flex-start}
+.ticks .icon{margin-top:.2rem;color:var(--acc1)}
+html[data-look="day"] .ticks .icon{color:var(--acc3)}
+.ticks.no .icon{color:var(--acc3)}
+html[data-look="day"] .ticks.no .icon{color:#B4004E}
+.ticks strong{display:block}
+.ticks span{color:var(--muted)}
+
+/* Background rows on the About page */
+.rows{list-style:none;border:1px solid var(--line);border-radius:24px;overflow:hidden;background:var(--card)}
+.rows li{display:grid;grid-template-columns:9.5rem 1fr;gap:1.2rem;padding:1.15rem 1.5rem;border-top:1px solid var(--line);align-items:baseline}
+.rows li:first-child{border-top:0}
+.rows b{font-size:1.15rem;letter-spacing:-.01em}
+.rows span{color:var(--muted)}
+.rows span strong{color:var(--ink);display:block;margin-bottom:.15rem}
+
+/* Questions and answers, shown open. No taps needed. */
+.faq{display:grid;gap:.8rem;max-width:44rem}
+.faq div{border:1px solid var(--line);background:var(--card);border-radius:18px;padding:1.1rem 1.3rem}
+.faq h3{font-size:1.1rem;margin:0 0 .4rem}
+.faq p{color:var(--muted);margin:0}
+
+/* Notes */
+.note{border:1px solid var(--line);border-left:5px solid var(--acc2);background:var(--card);border-radius:16px;padding:1.1rem 1.3rem;color:var(--muted);max-width:44rem}
+.note strong{color:var(--ink)}
+.note.gap{margin-top:1.2rem}
+.placeholder{border:2px dashed var(--warn-line);background:var(--warn-bg);border-radius:20px;padding:1.4rem 1.5rem;max-width:44rem}
+.placeholder .tag{display:inline-block;font-size:.84rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--warn-ink);border:1.5px solid var(--warn-line);border-radius:999px;padding:.15rem .7rem;margin-bottom:.7rem}
+.placeholder h2,.placeholder h3{font-size:1.3rem;margin-bottom:.4rem}
+.placeholder p{margin:0;color:var(--muted)}
+.alert{border:2px solid var(--alert-line);background:var(--alert-bg);border-radius:20px;padding:1.4rem 1.5rem;max-width:44rem}
+.alert h2,.alert h3{font-size:1.35rem;margin-bottom:.6rem;display:flex;gap:.6rem;align-items:center}
+.alert .icon{color:var(--alert-line)}
+.alert ul{list-style:none;display:grid;gap:.6rem}
+.alert li{position:relative;padding-left:1.3rem}
+.alert li::before{content:"";position:absolute;left:.1rem;top:.62em;width:.55rem;height:.55rem;border-radius:50%;background:var(--alert-line)}
+.alert p{margin:.8rem 0 0;color:var(--muted)}
+
+/* Closing band */
+.band{margin-top:3.2rem;margin-bottom:4rem;border-radius:32px;padding:2.6rem 2.2rem;border:1px solid var(--line);background:var(--card);
+  display:flex;align-items:center;justify-content:space-between;gap:1.6rem;flex-wrap:wrap}
+@supports (background:color-mix(in srgb,red 10%,transparent)){
+  .band{background:linear-gradient(120deg,color-mix(in srgb,var(--acc1) 18%,transparent),color-mix(in srgb,var(--acc2) 22%,transparent)),var(--card)}
+}
+.band h2{font-size:clamp(1.5rem,3vw,2.1rem);max-width:24ch}
+.band p{color:var(--muted);margin:.6rem 0 0;max-width:34rem}
+
+/* Footer */
+.foot{border-top:1px solid var(--line);background:var(--nav);padding:2.4rem 0 2.6rem}
+.foot-top{display:flex;justify-content:space-between;align-items:center;gap:1.2rem;flex-wrap:wrap;margin-bottom:1.4rem}
+.foot nav{display:flex;gap:.2rem;flex-wrap:wrap}
+.foot nav a{color:var(--ink);font-weight:600;text-decoration:none;padding:.55rem .8rem;border-radius:999px;min-height:44px;display:inline-flex;align-items:center}
+.foot nav a:hover{background:var(--card2)}
+.foot nav a[aria-current="page"]{background:var(--chip);color:var(--chip-ink)}
+.places{display:flex;gap:.6rem;align-items:flex-start;font-weight:600;margin-bottom:.9rem}
+.places .icon{margin-top:.15rem;color:var(--acc1)}
+html[data-look="day"] .places .icon{color:var(--acc2)}
+.made{font-size:.9rem;color:var(--muted);max-width:44rem;margin-bottom:.5rem}
+
+@media (prefers-reduced-motion:reduce){.btn,a.card{transition:none}}
+@media (forced-colors:active){
+  .size button[aria-pressed="true"],.ans[aria-pressed="true"]{outline:3px solid Highlight;outline-offset:-5px}
+  .track i{background:Highlight}
+  .mark i{border:6px solid CanvasText;background:none}
+  .mark i::after{display:none}
+}
+
+/* Narrower screens */
+@media (max-width:1080px){
+  .g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .steps.four{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:940px){
+  html.js .menu-btn{display:inline-flex}
+  html.js .panel{display:none;width:100%;margin:0;padding:.4rem 0 .8rem;flex-direction:column;align-items:stretch}
+  html.js .panel.open{display:flex}
+  html.js .panel a{font-size:1.15rem;padding:.8rem 1rem;border-radius:14px;border:2px solid var(--edge);background:var(--card);margin:.2rem 0}
+  html.js .panel a[aria-current="page"]{background:var(--chip);color:var(--chip-ink);border-color:var(--acc2);border-left-width:9px}
+  .hero{grid-template-columns:1fr;padding-top:2.4rem}
+  .orbit{max-width:360px}
+  .g3,.split{grid-template-columns:1fr}
+  .rows li{grid-template-columns:1fr;gap:.2rem}
+  .band{padding:2rem 1.4rem}
+  .split .sheet{transform:none}
+}
+@media (max-width:700px){
+  .doors,.g2,.steps{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .g4,.steps.four{grid-template-columns:1fr}
+  .proof{grid-template-columns:1fr;gap:.9rem}
+  .proof strong{font-size:1.3rem}
+  .mark{font-size:1.2rem;flex:1 1 0;min-width:0}
+  .mark small{font-size:.84rem}
+  html:not(.js) .mark{flex:0 0 100%}
+  .menu-btn{flex:none}
+  .btn{width:100%;justify-content:center}
+  .wrap{padding-left:1.1rem;padding-right:1.1rem}
+  .util .wrap{justify-content:space-between}
+  .eyebrow{border-radius:18px}
+}
+@media (max-width:360px){
+  .hero h1{font-size:min(2.5rem,11vw)}
+  .size-cap{display:none}
+}
+
+/* ---------- The yes-or-no quiz (magazine style) ---------- */
+.serif{font-family:"Source Serif 4",Georgia,"Times New Roman",serif;letter-spacing:-.015em}
+.badge{flex:none;width:6.4rem;height:6.4rem;border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;
+  font-weight:600;line-height:1.1;font-size:1.02rem;background:var(--acc3);color:#0B0B12;transform:rotate(10deg);box-shadow:var(--shadow)}
+html[data-look="day"] .badge{background:#FFD23F}
+.strip{display:flex;gap:.3rem 1.3rem;flex-wrap:wrap;align-items:baseline;font-size:.84rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+  border-top:3px solid var(--ink);border-bottom:1px solid var(--line);padding:.6rem 0;margin:0 0 1.5rem}
+.strip h1{font:inherit;letter-spacing:inherit;color:var(--ink);margin:0}
+.print-head{display:none}
+
+.quiz{max-width:860px;padding-top:1.5rem;padding-bottom:3rem;scroll-margin-top:.4rem}
+.cover-title{font-size:clamp(2.6rem,9.5vw,4.8rem);line-height:1.02;font-weight:700;margin:0 0 1.2rem;max-width:11ch}
+.cover-row{display:flex;gap:1.2rem;align-items:center;margin-bottom:1.5rem}
+.cover-row .lede{margin:0;font-size:1.2rem}
+.cover-lines{list-style:none;font-weight:600;margin:0 0 1.4rem;display:grid;gap:.25rem}
+.cover-lines li::before{content:"\25B8";color:var(--acc3);margin-right:.5rem}
+.cover-pick{font-weight:600;font-size:1.15rem;margin:0 0 .8rem}
+.doors2{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+.door-btn{font:inherit;text-align:left;cursor:pointer;display:flex;gap:.9rem;align-items:flex-start;min-height:6.2rem;padding:1.1rem 1.2rem;border-radius:22px;
+  border:2px solid var(--edge);background:var(--solid);color:var(--ink);touch-action:manipulation}
+.door-btn .icon{width:2rem;height:2rem;margin-top:.15rem;color:var(--acc1)}
+html[data-look="day"] .door-btn .icon{color:var(--acc2)}
+.door-btn strong{display:block;font-size:1.25rem;line-height:1.2;margin-bottom:.25rem}
+.door-btn span span{display:block;color:var(--muted);font-size:1rem;line-height:1.4}
+.door-btn:active{transform:scale(.98)}
+.cover-note{color:var(--muted);margin:1.1rem 0 0}
+.quiz-cover .note{margin-top:1.4rem}
+.list-head{font-size:1.6rem;font-weight:700;margin:2rem 0 1rem}
+
+.quiz-bar{display:grid;grid-template-columns:auto 1fr;gap:.7rem 1rem;align-items:center;margin-bottom:1.1rem}
+.back{font:inherit;font-weight:600;color:var(--ink);background:var(--card);border:2px solid var(--edge);border-radius:999px;min-height:48px;
+  padding:0 1.2rem 0 .8rem;display:inline-flex;gap:.4rem;align-items:center;cursor:pointer;touch-action:manipulation}
+.back .icon{width:1.2rem;height:1.2rem}
+.track{height:12px;border-radius:99px;background:var(--card2);border:2px solid var(--edge);overflow:hidden}
+.track i{display:block;height:100%;width:0;background:var(--acc2);background:linear-gradient(90deg,var(--acc1),var(--acc2));border-radius:99px}
+
+.quiz-qs{list-style:none}
+.q{position:relative;overflow:hidden;border:1px solid var(--line);background:var(--card);border-radius:28px;padding:2rem 1.7rem 1.8rem;
+  box-shadow:var(--shadow);margin-bottom:1rem}
+.q::before{content:"";position:absolute;left:0;top:0;right:0;height:6px;background:linear-gradient(90deg,var(--acc1),var(--acc2),var(--acc3))}
+.q-title{font-size:clamp(1.75rem,5.8vw,2.7rem);line-height:1.14;font-weight:700;margin:0 0 1rem}
+.q-num{display:block;font-style:italic;font-size:1.2rem;font-weight:600;line-height:1.3;letter-spacing:0;margin:0 0 .7rem;color:var(--link)}
+.q-title:focus,.type h2:focus,.alert h2:focus{outline:none}
+.q-sub{font-size:1.15rem;color:var(--muted);margin:0;max-width:34rem}
+.q-if{margin:1.1rem 0 0;font-weight:600}
+
+/* Yes and No carry equal weight. Colour marks only an answer already given. */
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:.6rem .9rem;position:-webkit-sticky;position:sticky;bottom:0;z-index:3;
+  padding:.6rem 0 1rem}
+.quiz.flow .answers{position:static}
+@media (max-height:520px){.answers{position:static}}
+.unsure{margin:.2rem 0 0;color:var(--muted);font-size:1rem;text-align:center}
+.ans{font:inherit;font-weight:600;font-size:1.7rem;min-height:5.2rem;border-radius:24px;cursor:pointer;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
+  gap:.2rem .7rem;border:3px solid var(--edge);color:var(--ink);background:var(--solid);touch-action:manipulation;padding:.5rem .6rem}
+.ans .icon{width:2rem;height:2rem;stroke-width:2.6}
+.ans .said{display:none;flex-basis:100%;text-align:center;font-size:.9rem;font-weight:600}
+.ans[aria-pressed="true"]{background:var(--acc2);background:linear-gradient(95deg,var(--acc1),var(--acc2));color:var(--btn-ink);border-color:transparent}
+.ans[aria-pressed="true"] .said{display:block}
+.ans:active{transform:scale(.97)}
+@media (prefers-reduced-motion:no-preference){
+  html.js .q.on{animation:qin .22s ease-out}
+  @keyframes qin{from{opacity:.25;transform:translateX(14px)}to{opacity:1;transform:none}}
+}
+
+.type h2{font-size:clamp(2.1rem,7.5vw,3.5rem);line-height:1.05;font-weight:700;margin:0 0 1rem}
+.type p{font-size:1.2rem;color:var(--muted);max-width:38rem}
+.quiz-result .alert{margin-bottom:2rem}
+.plan-head,.answers-head{font-size:1.35rem;margin:2.2rem 0 1rem}
+.plan{list-style:none;counter-reset:p;display:grid;gap:.9rem}
+.plan li.lesson{counter-increment:p;display:grid;grid-template-columns:auto 1fr;gap:1.1rem;align-items:start;border:1px solid var(--line);background:var(--card);
+  border-radius:22px;padding:1.3rem 1.4rem;break-inside:avoid}
+.plan li.lesson::before{content:counter(p);display:flex;align-items:center;justify-content:center;width:2.7rem;height:2.7rem;border-radius:50%;font-weight:600;
+  font-size:1.2rem;background:var(--acc2);background:linear-gradient(135deg,var(--acc1),var(--acc2));color:var(--btn-ink)}
+.plan h4{font-size:1.25rem;margin:0 0 .3rem;letter-spacing:-.015em}
+.plan p{color:var(--muted);margin:0 0 .5rem}
+.plan a{font-weight:600}
+.later-head{font-weight:600;font-size:1.15rem;color:var(--muted);margin:.8rem 0 0}
+.first-tag{display:none;font-size:1rem;font-weight:600;color:var(--chip-ink);background:var(--chip);border-radius:999px;padding:.15rem .8rem;margin-bottom:.5rem}
+.plan li.first{border:2px solid var(--acc2)}
+.plan li.first .first-tag{display:inline-block}
+.extras{margin-top:1.6rem}
+.answers-note{color:var(--muted);margin:-.4rem 0 1rem}
+.your-answers{list-style:none;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:var(--card)}
+.your-answers li{display:grid;grid-template-columns:1fr auto auto;gap:.5rem 1rem;align-items:center;padding:.7rem 1.1rem;border-top:1px solid var(--line)}
+.your-answers li:first-child{border-top:0}
+.ya-a{font-weight:600;min-width:2.4rem;text-align:right}
+.ya-change{font:inherit;font-weight:600;font-size:1rem;min-height:44px;padding:0 1rem;border-radius:999px;border:2px solid var(--edge);background:var(--solid);color:var(--ink);cursor:pointer;touch-action:manipulation}
+.result-cta{margin-top:1.8rem}
+.result-cta button{font:inherit;font-weight:600;font-size:1.05rem;cursor:pointer}
+.result-cta .icon{width:1.2rem;height:1.2rem}
+.quiz-result .made{margin-top:1.4rem}
+
+/* What shows when. Without scripts: the cover and both question lists, as plain reading. */
+html:not(.js) .quiz-bar,html:not(.js) .answers,html:not(.js) .unsure,html:not(.js) .quiz-result,html:not(.js) .doors2,html:not(.js) .cover-pick,html:not(.js) .cover-note{display:none}
+html.js .nojs,html.js .q-if{display:none}
+html.js .quiz{min-height:100vh}
+html.js .quiz[data-state="ask"] .strip span,html.js .quiz[data-state="result"] .strip span{display:none}
+html.js .q{display:none;min-height:min(42vh,21rem);flex-direction:column;justify-content:center}
+html.js .q.on{display:flex}
+html.js .quiz[data-state="intro"] .unsure,html.js .quiz[data-state="result"] .unsure,html.js .quiz[data-state="intro"] .quiz-bar,html.js .quiz[data-state="intro"] .quiz-qs,html.js .quiz[data-state="intro"] .answers,
+html.js .quiz[data-state="intro"] .quiz-result,html.js .quiz[data-state="ask"] .quiz-cover,html.js .quiz[data-state="ask"] .quiz-result,
+html.js .quiz[data-state="result"] .quiz-cover,html.js .quiz[data-state="result"] .quiz-bar,html.js .quiz[data-state="result"] .quiz-qs,
+html.js .quiz[data-state="result"] .answers{display:none}
+html.js .type,html.js .plan,html.js .plan li,html.js .extras,html.js .extras li,html.js .plan-empty,html.js .plan-head,html.js .quiz-result .alert{display:none}
+html.js .type.on,html.js .plan-empty.on,html.js .plan-head.on,html.js .quiz-result .alert.on,html.js .plan li.later-head.on{display:block}
+html.js .plan.on,html.js .plan li.lesson.on,html.js .extras.on{display:grid}
+html.js .extras li.on{display:flex}
+
+/* Quiz teaser on the home page */
+.teaser{display:flex;align-items:center;gap:1.6rem;text-decoration:none;color:var(--ink);border:2px solid var(--edge);border-radius:28px;padding:1.6rem 2rem;
+  margin-top:1.4rem;background:var(--card);transition:transform .15s ease,border-color .15s ease}
+@supports (background:color-mix(in srgb,red 10%,transparent)){
+  .teaser{background:linear-gradient(120deg,color-mix(in srgb,var(--acc3) 16%,transparent),color-mix(in srgb,var(--acc2) 18%,transparent)),var(--card)}
+}
+@media (hover:hover){.teaser:hover{transform:translateY(-3px);border-color:var(--acc2)}}
+.teaser .badge{width:5.4rem;height:5.4rem;font-size:.92rem}
+.teaser-text{flex:1;display:block}
+.teaser-text strong{display:block;font-size:clamp(1.5rem,3.4vw,2.1rem);line-height:1.1;margin-bottom:.35rem}
+.teaser-text .sub{display:block;color:var(--muted)}
+.teaser .go{white-space:nowrap;font-size:1.05rem}
+
+@media (max-width:700px){
+  .teaser{flex-wrap:wrap;padding:1.4rem 1.3rem;gap:1rem}
+  .teaser-text{flex:1 1 60%}
+  .doors2{grid-template-columns:1fr}
+  .cover-row .badge{width:5.2rem;height:5.2rem;font-size:.88rem}
+  .q{padding:1.6rem 1.3rem 1.5rem;border-radius:24px}
+  .plan li.lesson{padding:1.1rem 1.1rem;gap:.9rem}
+  .your-answers li{grid-template-columns:1fr auto}
+  .ya-q{grid-column:1/-1}
+  .ya-a{text-align:left}
+}
+@media (max-width:560px){
+  /* On phones the question screen keeps only what the question needs. The quiz name stays for screen readers. */
+  html.js .quiz[data-state="ask"] .strip{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);border:0}
+  html.js .quiz[data-state="ask"]{padding-top:.8rem}
+}
+@media (max-width:420px){
+  .cover-row{flex-wrap:wrap}
+  .cover-row .badge{display:none}
+  .ans{font-size:min(1.7rem,7.5vw)}
+  .ans .icon{width:min(2rem,8vw);height:min(2rem,8vw)}
+}
+@media (prefers-reduced-motion:reduce){.teaser,.ans,.door-btn{transition:none}}
+
+/* ---------- Paper. Black on white in both looks, with or without background printing. ---------- */
+@media print{
+  html[data-look]{--bg:#fff;--ink:#000;--muted:#222;--card:#fff;--card2:#fff;--solid:#fff;--line:#888;--edge:#444;--link:#000;--chip:#fff;--chip-ink:#000;
+    --btn-ink:#000;--nav:#fff;--shadow:none;--alert-bg:#fff;--alert-line:#000;--warn-bg:#fff;--warn-line:#000;--warn-ink:#000;--acc1:#000;--acc2:#000;--acc3:#000}
+  body{background:#fff;color:#000;display:block;min-height:0}
+  body::before{display:none}
+  .grad{background:none;color:#000;-webkit-text-fill-color:#000}
+  .util,header.nav,.skip,.band .btn,.menu-btn,.foot nav,.answers,.unsure,.quiz-bar,.result-cta,.answers-head,.answers-note,.your-answers,.strip,.quiz-result .made{display:none!important}
+  .print-head{display:block;font-weight:600;border-bottom:2px solid #000;padding-bottom:.4rem;margin:0 0 1.2rem}
+  .quiz{min-height:0!important;padding-top:0}
+  .plan li.lesson,.q,.card,.alert{box-shadow:none;break-inside:avoid;page-break-inside:avoid}
+  .plan li.lesson::before,.steps li::before{background:none;border:2px solid #000;color:#000}
+  .first-tag{border:1.5px solid #000}
+  .foot{background:none;border-top:1px solid #000;padding:1rem 0 0}
+  .mark i{display:none}
+  a{text-decoration:none}
+}
